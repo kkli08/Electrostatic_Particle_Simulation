@@ -18,7 +18,7 @@ Particle::Particle(double xCoord, double yCoord, char type) {
 
 // Calculate the distance between two particles
 double CoulombForceCalculator::calculateDistance(const Particle& p1, const Particle& p2) const {
-    return std::sqrt(std::pow(p2.x - p1.x, 2) + std::pow(p2.y - p1.y, 2)) * 1e-9;  // Distance in meters
+    return std::sqrt(std::pow(p2.x - p1.x, 2) + std::pow(p2.y - p1.y, 2)) * 1e-10;  // Distance in meters
 }
 
 // Compute the Coulomb force between two particles
