@@ -12,9 +12,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_executable(nParticleSim main.cpp
         Sequential/Sequential.cpp
         Particle/Particle.cpp
-        Particle/ParticleReader.cpp)
+        Particle/ParticleReader.cpp
+        Distributed/Parallel.cpp)
 
 target_include_directories(nParticleSim PUBLIC
         ${PROJECT_SOURCE_DIR}/Particle
         ${PROJECT_SOURCE_DIR}/Sequential
+        ${PROJECT_SOURCE_DIR}/Distributed
 )

@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <stdexcept>
 #include "Sequential.h"
+#include "Parallel.h"
 #include "ParticleReader.h"
 
 
@@ -114,6 +115,19 @@ int main(int argc, char* argv[]) {
 
     } else if (mode == 2) {
       // Evenly-Distributed Parallel Computation
+      // Read particles from the file
+      auto particles = reader.readParticles(input_file);
+
+      Parallel parallelProcessor(cutoff_radius, num_threads);
+
+      // Compute the forces in parallel
+      auto forces = parallelProcessor.computeForces(particles);
+
+      // Output the forces to a CSV file
+      std::string outputFilePath = "output_parallel.csv";
+      parallelProcessor.writeForcesToFile(forces, outputFilePath);
+
+
     } else if (mode == 3) {
       // Load-Balanced, Leader-Based Parallel Computation
     }
