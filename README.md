@@ -1,6 +1,19 @@
 ## Electrostatic_Particle_Simulation
 A Range-Limited Electrostatic N-Particle Simulation.
 
+### Usage
+```shell
+Usage: nParticleSim [OPTIONS]
+Options:
+--mode              Select Mode {1,2,3}
+--cutoff_radius     Enter the cutoff radius (1e-10 m)
+--input             Enter the file path for csv (particles.csv)
+--num_threads       Enter number of threads in Mode 1 and 2
+```
+**_e.g_**
+```shell
+./nParticleSim --mode=2 --cutoff_radius=47500 --input=../dataset/particles.csv --num_threads=50
+```
 ### Mode 1: Sequential Computation
 > This implementation should be entirely serial. No multithreading, just the approximation method you 
 applied to compute the signed scalar force sums on every particle. The cutoff radius must be an input 
