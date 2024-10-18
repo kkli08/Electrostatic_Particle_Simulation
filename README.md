@@ -30,4 +30,5 @@ parameters for this mode.
 System:     macOS Sonoma Version 14.3.1
 Chip:       Apple M3 Max
 Memory:     48 GB
+Core:       16-core CPU and 40-core GPU (400GB/s memory bandwidth)
 ```
