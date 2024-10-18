@@ -2,7 +2,7 @@
 A Range-Limited Electrostatic N-Particle Simulation.
 
 ### Usage
-```shell
+```text
 Usage: nParticleSim [OPTIONS]
 Options:
 --mode              Select Mode {1,2,3}
