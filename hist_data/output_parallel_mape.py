@@ -7,7 +7,7 @@ standard_file = 'standard.csv'
 standard_data = np.loadtxt(standard_file)
 
 # Define the cutoff values
-cutoff_values = [500, 1000, 2000, 5000, 10000, 15000, 20000, 30000, 40000, 50000]
+cutoff_values = [500, 1000, 2000, 5000, 10000, 15000, 20000, 30000, 40000, 45000, 47500, 50000]
 output_files = [f'output_parallel_{cutoff}.csv' for cutoff in cutoff_values]
 
 # Create a list to store the percentage errors

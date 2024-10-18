@@ -6,6 +6,11 @@ A Range-Limited Electrostatic N-Particle Simulation.
 applied to compute the signed scalar force sums on every particle. The cutoff radius must be an input 
 parameter for this mode.
 
+#### Area Chart for Different Cutoff Radius
+![](hist_data/chart/area_line_chart_cr.png)
+
+#### Mean Percentage Error for Different Cutoff Radius
+![](hist_data/chart/mape_cr.png)
 
 ### Mode 2: Evenly-Distributed Parallel Computation
 > In this implementation, you will use the Pthread/thread execution model to create multiple threads and 
