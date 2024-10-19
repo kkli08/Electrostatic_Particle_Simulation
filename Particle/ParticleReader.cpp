@@ -10,7 +10,7 @@
 // Helper function to parse a CSV line and create a Particle
 std::unique_ptr<Particle> parseParticle(const std::string& line) {
     std::stringstream ss(line);
-    std::string xStr, yStr, qStr;1
+    std::string xStr, yStr, qStr;
 
     // Parse the line
     if (std::getline(ss, xStr, ',') && std::getline(ss, yStr, ',') && std::getline(ss, qStr)) {

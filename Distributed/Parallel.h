@@ -32,7 +32,8 @@ private:
     // Thread worker function to compute forces for a range of particles
     void computeForceRange(const std::vector<std::unique_ptr<Particle>>& particles,
                            std::vector<double>& forces,
-                           size_t start_index, size_t end_index);
+                           size_t start_index, size_t end_index,
+                           std::ofstream& timingFile);
 };
 
 #endif // PARALLEL_H

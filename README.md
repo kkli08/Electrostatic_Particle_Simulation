@@ -8,16 +8,27 @@ Options:
 --mode              Select Mode {1,2,3}
 --cutoff_radius     Enter the cutoff radius (1e-10 m)
 --input             Enter the file path for csv (particles.csv)
---num_threads       Enter number of threads in Mode 1 and 2
+--num_threads       Enter number of threads in Mode 2 and 3 (for each process)
+--leader            Enter number of leader process in Mode 3
 ```
 **_e.g_**
 ```shell
+./nParticleSim --mode=1 --cutoff_radius=45000 --input=../dataset/particles.csv 
+```
+```shell
 ./nParticleSim --mode=2 --cutoff_radius=47500 --input=../dataset/particles.csv --num_threads=50
 ```
+```shell
+./nParticleSim --mode=2 --cutoff_radius=47500 --input=../dataset/particles.csv --num_threads=50 --leader=10
+```
 ### Mode 1: Sequential Computation
-> This implementation should be entirely serial. No multithreading, just the approximation method you 
-applied to compute the signed scalar force sums on every particle. The cutoff radius must be an input 
-parameter for this mode.
+> This implementation is entirely serial. No multithreading, just the approximation method  
+applied to compute the signed scalar force sums on every particle. 
+
+**Input parameters:**
+```shell
+./nParticleSim --mode=1 --cutoff_radius={%d} --input=../dataset/particles.csv 
+```
 
 #### Area Chart for Different Cutoff Radius
 ![](hist_data/chart/area_line_chart_cr.png)
@@ -26,11 +37,23 @@ parameter for this mode.
 ![](hist_data/chart/mape_cr.png)
 
 ### Mode 2: Evenly-Distributed Parallel Computation
-> In this implementation, you will use the Pthread/thread execution model to create multiple threads and 
-divide the computation among the threads. You must divide the dataset among the threads at the point in 
-time when the thread is created, so that once it finishes its given portion of work, it returns. Divide 
-the work as evenly as possible among the threads. The number of threads and the cutoff radius must be input 
-parameters for this mode.
+> In this implementation, I use the `std::thread` execution model to create multiple threads and 
+divide the computation among the threads. I divide the dataset among the threads at the point in 
+time when the thread is created, so that once it finishes its given portion of work, it returns. 
+The work is as evenly as possible divided among the threads. 
+
+**Input parameters:**
+```shell
+./nParticleSim --mode=2 --cutoff_radius={%d} --input=../dataset/particles.csv --num_threads={%d}
+```
+
+#### Total Time Consumed vs Number of Threads
+`--cutoff_radius=45000`
+![](hist_data/chart/total_time_threads.png)
+
+#### Average Time per Particle vs Number of Threads
+`--cutoff_radius=45000`
+![](hist_data/chart/average_time_particle_threads.png)
 
 
 ### Mode 3: Load-Balanced, Leader-Based Parallel Computation
