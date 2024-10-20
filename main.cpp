@@ -10,13 +10,14 @@
 #include "Sequential.h"
 #include "Parallel.h"
 #include "ParticleReader.h"
+#include "Leader.h"
 
 
 using namespace std;
 namespace fs = std::filesystem;
 
 // Function to parse command line arguments
-void parseArguments(int argc, char* argv[], int& mode, double& cutoff_radius, std::string& input_file, int& num_threads) {
+void parseArguments(int argc, char* argv[], int& mode, double& cutoff_radius, std::string& input_file, int& num_threads, int& num_leaders) {
   for (int i = 1; i < argc; ++i) {
     std::string arg = argv[i];
 
@@ -59,6 +60,18 @@ void parseArguments(int argc, char* argv[], int& mode, double& cutoff_radius, st
         throw;
       }
     }
+    else if (arg.find("--num_leaders=") == 0) {
+      std::string num_leaders_value = arg.substr(14);
+      try {
+        num_leaders = std::stoi(num_leaders_value);  // Convert to int
+        if (num_leaders < 1) {
+          throw std::invalid_argument("Invalid num_threads value.");
+        }
+      } catch (std::exception& e) {
+        std::cerr << "Error: Invalid num_threads value." << std::endl;
+        throw;
+      }
+    }
     // Check if the argument starts with "--input="
     else if (arg.find("--input=") == 0) {
       input_file = arg.substr(8);  // Extract the value after "--input="
@@ -87,10 +100,11 @@ int main(int argc, char* argv[]) {
   int mode = 1;
   double cutoff_radius = 0.0;
   int num_threads = 1;
+  int num_leaders = 1;
   std::string input_file;
 
   try {
-    parseArguments(argc, argv, mode, cutoff_radius, input_file, num_threads);
+    parseArguments(argc, argv, mode, cutoff_radius, input_file, num_threads, num_leaders);
 
     // Display the parsed values
     std::cout << "Mode: " << mode << std::endl;
@@ -130,6 +144,22 @@ int main(int argc, char* argv[]) {
 
     } else if (mode == 3) {
       // Load-Balanced, Leader-Based Parallel Computation
+      // Initialize MPI
+      MPI_Init(&argc, &argv);
+      // Read particles from the file
+      auto particles = reader.readParticles(input_file);
+
+      Leader leaderProcessor(cutoff_radius, num_threads, num_leaders);
+
+      // Compute
+      auto forces = leaderProcessor.computeForces(particles);
+
+      // Output
+      std::string outputFilePath = "output_leader.csv";
+      leaderProcessor.writeForcesToFile(forces, outputFilePath);
+
+      // Finalize MPI
+      MPI_Finalize();
     }
   }
   catch (std::exception& e) {

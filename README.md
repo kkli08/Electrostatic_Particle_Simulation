@@ -19,7 +19,7 @@ Options:
 ./nParticleSim --mode=2 --cutoff_radius=47500 --input=../dataset/particles.csv --num_threads=50
 ```
 ```shell
-./nParticleSim --mode=2 --cutoff_radius=47500 --input=../dataset/particles.csv --num_threads=50 --leader=10
+mpirun -np 2 ./nParticleSim --mode=3 --cutoff_radius=45000 --input=../dataset/particles.csv --num_threads=10
 ```
 ### Mode 1: Sequential Computation
 > This implementation is entirely serial. No multithreading, just the approximation method  
@@ -64,6 +64,10 @@ can be accessed by all of its worker threads. Worker threads must take one small
 the necessary computation, and then return to the queue to take more work. Threads only return once the queue is 
 empty and all work is done. The number of leader processes and worker threads and the cutoff radius must be input 
 parameters for this mode.
+
+```shell
+mpirun -np {%num_of_leaders} ./nParticleSim --mode=3 --cutoff_radius=45000 --input=../dataset/particles.csv --num_threads={%d}
+```
 
 
 ### _Hardware Resources_
