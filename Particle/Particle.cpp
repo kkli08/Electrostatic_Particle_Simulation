@@ -4,6 +4,8 @@
 
 #include "Particle.h"
 
+// Default constructor for Particle class
+Particle::Particle() : x(0.0), y(0.0), charge(0.0) {}
 
 // Constructor for Particle class
 Particle::Particle(double xCoord, double yCoord, char type) {
@@ -14,6 +16,22 @@ Particle::Particle(double xCoord, double yCoord, char type) {
     } else if (type == 'e') {
         charge = charge_electron; // Electron
     }
+}
+
+// Get ParticleData for MPI communication
+ParticleData Particle::getData() const {
+    ParticleData data;
+    data.x = x;
+    data.y = y;
+    data.charge = charge;
+    return data;
+}
+
+// Set ParticleData from MPI communication
+void Particle::setData(const ParticleData& data) {
+    x = data.x;
+    y = data.y;
+    charge = data.charge;
 }
 
 // Calculate the distance between two particles

@@ -11,13 +11,13 @@
 #include "Parallel.h"
 #include "ParticleReader.h"
 #include "Leader.h"
-
+#include <chrono>
 
 using namespace std;
 namespace fs = std::filesystem;
 
 // Function to parse command line arguments
-void parseArguments(int argc, char* argv[], int& mode, double& cutoff_radius, std::string& input_file, int& num_threads, int& num_leaders) {
+void parseArguments(int argc, char* argv[], int& mode, double& cutoff_radius, std::string& input_file, int& num_threads) {
   for (int i = 1; i < argc; ++i) {
     std::string arg = argv[i];
 
@@ -60,18 +60,6 @@ void parseArguments(int argc, char* argv[], int& mode, double& cutoff_radius, st
         throw;
       }
     }
-    else if (arg.find("--num_leaders=") == 0) {
-      std::string num_leaders_value = arg.substr(14);
-      try {
-        num_leaders = std::stoi(num_leaders_value);  // Convert to int
-        if (num_leaders < 1) {
-          throw std::invalid_argument("Invalid num_threads value.");
-        }
-      } catch (std::exception& e) {
-        std::cerr << "Error: Invalid num_threads value." << std::endl;
-        throw;
-      }
-    }
     // Check if the argument starts with "--input="
     else if (arg.find("--input=") == 0) {
       input_file = arg.substr(8);  // Extract the value after "--input="
@@ -97,75 +85,154 @@ void parseArguments(int argc, char* argv[], int& mode, double& cutoff_radius, st
 }
 
 int main(int argc, char* argv[]) {
-  int mode = 1;
-  double cutoff_radius = 0.0;
-  int num_threads = 1;
-  int num_leaders = 1;
-  std::string input_file;
+    int mode = 1;
+    double cutoff_radius = 0.0;
+    int num_threads = 1;
+    std::string input_file;
 
-  try {
-    parseArguments(argc, argv, mode, cutoff_radius, input_file, num_threads, num_leaders);
+    try {
+        parseArguments(argc, argv, mode, cutoff_radius, input_file, num_threads);
 
-    // Display the parsed values
-    std::cout << "Mode: " << mode << std::endl;
-    std::cout << "Cutoff Radius: " << cutoff_radius << " meters" << std::endl;
-    std::cout << "Input File: " << input_file << std::endl;
+        // Display the parsed values
+        std::cout << "Mode: " << mode << std::endl;
+        std::cout << "Cutoff Radius: " << cutoff_radius << " meters" << std::endl;
+        std::cout << "Input File: " << input_file << std::endl;
 
-    ParticleReader reader;
+        if (mode == 1) {
+            // Sequential Computation
+            ParticleReader reader;
+            auto particles = reader.readParticles(input_file);
+            Sequential sequentialProcessor(cutoff_radius);
+            auto forces = sequentialProcessor.computeForces(particles);
+            std::string outputFilePath = "output.csv";
+            sequentialProcessor.writeForcesToFile(forces, outputFilePath);
+        } else if (mode == 2) {
+            // Evenly-Distributed Parallel Computation
+            ParticleReader reader;
+            auto particles = reader.readParticles(input_file);
+            Parallel parallelProcessor(cutoff_radius, num_threads);
+            auto forces = parallelProcessor.computeForces(particles);
+            std::string outputFilePath = "output_parallel.csv";
+            parallelProcessor.writeForcesToFile(forces, outputFilePath);
+        } else if (mode == 3) {
+            // Initialize MPI
+            MPI_Init(&argc, &argv);
 
-    if (mode == 1) {
-      // Sequential Computation
-      // Read particles from the file
-      auto particles = reader.readParticles(input_file);
+            int world_rank = 0;
+            int world_size = 1;
+            MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+            MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
-      Sequential sequentialProcessor(cutoff_radius);
+            if (world_size == 1) {
+                if (world_rank == 0) {
+                    std::cerr << "Error: Mode 3 requires running with multiple processes using mpirun or mpiexec." << std::endl;
+                    std::cerr << "Example: mpirun -np <num_leaders> ./nParticleSim --mode=3 ..." << std::endl;
+                }
+                MPI_Finalize();
+                return 1;
+            }
 
-      // Compute the forces
-      auto forces = sequentialProcessor.computeForces(particles);
+            ParticleReader reader;
+            std::vector<std::unique_ptr<Particle>> particles;
+            size_t num_particles = 0;
 
-      // Output the forces to a CSV file
-      std::string outputFilePath = "output.csv";
-      sequentialProcessor.writeForcesToFile(forces, outputFilePath);
+            // Timing variables
+            std::chrono::high_resolution_clock::time_point read_start, read_end;
+            std::chrono::duration<double> read_duration(0);
+            std::chrono::high_resolution_clock::time_point bcast_start, bcast_end;
+            std::chrono::duration<double> bcast_duration(0);
 
-    } else if (mode == 2) {
-      // Evenly-Distributed Parallel Computation
-      // Read particles from the file
-      auto particles = reader.readParticles(input_file);
+            if (world_rank == 0) {
+                // Start timing for reading particles
+                read_start = std::chrono::high_resolution_clock::now();
 
-      Parallel parallelProcessor(cutoff_radius, num_threads);
+                // Only the root process reads the particles from the file
+                particles = reader.readParticles(input_file);
+                num_particles = particles.size();
 
-      // Compute the forces in parallel
-      auto forces = parallelProcessor.computeForces(particles);
+                // End timing for reading particles
+                read_end = std::chrono::high_resolution_clock::now();
+                read_duration = read_end - read_start;
+                std::cout << "Time to read particles: " << read_duration.count() << " seconds." << std::endl;
+            }
 
-      // Output the forces to a CSV file
-      std::string outputFilePath = "output_parallel.csv";
-      parallelProcessor.writeForcesToFile(forces, outputFilePath);
+            // Start timing for broadcasting particles
+            bcast_start = std::chrono::high_resolution_clock::now();
 
+            // Broadcast the number of particles to all processes
+            MPI_Bcast(&num_particles, 1, MPI_UNSIGNED_LONG_LONG, 0, MPI_COMM_WORLD);
 
-    } else if (mode == 3) {
-      // Load-Balanced, Leader-Based Parallel Computation
-      // Initialize MPI
-      MPI_Init(&argc, &argv);
-      // Read particles from the file
-      auto particles = reader.readParticles(input_file);
+            if (world_rank != 0) {
+                // Other processes allocate the vector of particles
+                particles.resize(num_particles);
+                for (size_t i = 0; i < num_particles; ++i) {
+                    particles[i] = std::make_unique<Particle>();
+                }
+            }
 
-      Leader leaderProcessor(cutoff_radius, num_threads, num_leaders);
+            // Define MPI_Datatype for ParticleData
+            MPI_Datatype MPI_ParticleData;
+            int blocklengths[3] = {1, 1, 1};
+            MPI_Aint offsets[3];
+            offsets[0] = offsetof(ParticleData, x);
+            offsets[1] = offsetof(ParticleData, y);
+            offsets[2] = offsetof(ParticleData, charge);
+            MPI_Datatype types[3] = {MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE};
+            MPI_Type_create_struct(3, blocklengths, offsets, types, &MPI_ParticleData);
+            MPI_Type_commit(&MPI_ParticleData);
 
-      // Compute
-      auto forces = leaderProcessor.computeForces(particles);
+            // Prepare an array of ParticleData
+            std::vector<ParticleData> particleDataArray(num_particles);
 
-      // Output
-      std::string outputFilePath = "output_leader.csv";
-      leaderProcessor.writeForcesToFile(forces, outputFilePath);
+            if (world_rank == 0) {
+                // Root process fills particleDataArray
+                for (size_t i = 0; i < num_particles; ++i) {
+                    particleDataArray[i] = particles[i]->getData();
+                }
+            }
 
-      // Finalize MPI
-      MPI_Finalize();
+            // Broadcast the array of ParticleData to all processes
+            MPI_Bcast(particleDataArray.data(), num_particles, MPI_ParticleData, 0, MPI_COMM_WORLD);
+
+            if (world_rank != 0) {
+                // Other processes set their particle data
+                for (size_t i = 0; i < num_particles; ++i) {
+                    particles[i]->setData(particleDataArray[i]);
+                }
+            }
+
+            // Free the MPI datatype
+            MPI_Type_free(&MPI_ParticleData);
+
+            // End timing for broadcasting particles
+            bcast_end = std::chrono::high_resolution_clock::now();
+            bcast_duration = bcast_end - bcast_start;
+
+            // Output timing information
+            if (world_rank == 0) {
+                std::cout << "Time to broadcast particles: " << bcast_duration.count() << " seconds." << std::endl;
+            }
+
+            // Create leader processor
+            Leader leaderProcessor(cutoff_radius, num_threads);
+
+            // Compute
+            auto forces = leaderProcessor.computeForces(particles);
+
+            // Output
+            std::string outputFilePath = "output_leader.csv";
+            leaderProcessor.writeForcesToFile(forces, outputFilePath);
+
+            // Finalize MPI
+            MPI_Finalize();
+        } else {
+            std::cerr << "Error: Invalid mode selected. Mode should be 1, 2, or 3." << std::endl;
+            return 1;
+        }
+    } catch (std::exception& e) {
+        std::cerr << "Failed to parse arguments: " << e.what() << std::endl;
+        return 1;
     }
-  }
-  catch (std::exception& e) {
-    std::cerr << "Failed to parse arguments: " << e.what() << std::endl;
-    return 1;
-  }
 
-  return 0;
+    return 0;
 }
