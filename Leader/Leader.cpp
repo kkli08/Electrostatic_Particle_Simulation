@@ -144,8 +144,8 @@ void Leader::workerThreadFunction(const std::vector<std::unique_ptr<Particle>>& 
 
         num_particles_processed++;
 
-        // Record start time for this task
-        auto task_start = std::chrono::high_resolution_clock::now();
+        // // Record start time for this task
+        // auto task_start = std::chrono::high_resolution_clock::now();
 
         const Particle& p1 = *particles[particle_index];
 
@@ -164,14 +164,14 @@ void Leader::workerThreadFunction(const std::vector<std::unique_ptr<Particle>>& 
             }
         }
 
-        // Record end time for this task
-        auto task_end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> task_duration = task_end - task_start;
+        // // Record end time for this task
+        // auto task_end = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<double> task_duration = task_end - task_start;
 
-        // Optional: Log the time taken for this task
-        timingFile << "Thread " << std::this_thread::get_id()
-                   << " processed particle " << particle_index
-                   << " in " << task_duration.count() << " seconds." << std::endl;
+        // // Optional: Log the time taken for this task
+        // timingFile << "Thread " << std::this_thread::get_id()
+        //            << " processed particle " << particle_index
+        //            << " in " << task_duration.count() << " seconds." << std::endl;
     }
 
     auto thread_end = std::chrono::high_resolution_clock::now();
