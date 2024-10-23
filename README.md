@@ -14,12 +14,17 @@ Options:
 ```
 **_e.g_**
 ```shell
+// Mode 1
 ./nParticleSim --mode=1 --cutoff_radius=45000 --input=../dataset/particles.csv 
 ```
 ```shell
+// Mode 2
 ./nParticleSim --mode=2 --cutoff_radius=47500 --input=../dataset/particles.csv --num_threads=50
 ```
+> [!TIP]
+> Inorder to run program in mode 3, `mpirun -np {#_of_leaders}` is REQUIRED.
 ```shell
+// Mode 3
 mpirun -np 2 ./nParticleSim --mode=3 --cutoff_radius=45000 --input=../dataset/particles.csv --num_threads=10
 ```
 ### Mode 1: Sequential Computation
