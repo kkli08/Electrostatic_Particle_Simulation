@@ -65,7 +65,7 @@ The work is as evenly as possible divided among the threads.
 
 ### Mode 3: Load-Balanced, Leader-Based Parallel Computation
 > [!NOTE]
-> In this implementation, I implement load-balanced, leader-based computation using Open MPI. Each leader is given an 
+> In this implementation, I implement load-balanced, leader-based computation using [Open MPI](https://www.open-mpi.org/). Each leader is given an 
 equal partition of the dataset. Each leader creates a pool of worker threads in the form of `threads`. 
 Each leader’s partition of the data will be further partitioned into smaller chunks and placed into a `worker queue` that 
 can be accessed by all of its worker threads. Worker threads take one small chunk of data at a time, execute 
