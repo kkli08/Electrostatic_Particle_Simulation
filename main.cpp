@@ -108,9 +108,19 @@ int main(int argc, char* argv[]) {
             sequentialProcessor.writeForcesToFile(forces, outputFilePath);
         } else if (mode == 2) {
             // Evenly-Distributed Parallel Computation
+            // Timing variables
+            std::chrono::high_resolution_clock::time_point read_start, read_end;
+            std::chrono::duration<double> read_duration(0);
+            // Start timing for reading particles
+            read_start = std::chrono::high_resolution_clock::now();
             ParticleReader reader;
             auto particles = reader.readParticles(input_file);
             Parallel parallelProcessor(cutoff_radius, num_threads);
+            // End timing for reading particles
+            read_end = std::chrono::high_resolution_clock::now();
+            read_duration = read_end - read_start;
+            std::cout << "Time to read particles: " << read_duration.count() << " seconds." << std::endl;
+
             auto forces = parallelProcessor.computeForces(particles);
             std::string outputFilePath = "output_parallel.csv";
             parallelProcessor.writeForcesToFile(forces, outputFilePath);
