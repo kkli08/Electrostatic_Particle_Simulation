@@ -183,7 +183,7 @@ void Leader::workerThreadFunction(const std::vector<std::unique_ptr<Particle>>& 
         thread_times[std::this_thread::get_id()] = thread_duration.count();
     }
 
-    // Optional: Log the total time taken by this thread
+    // Log the total time taken by this thread
     timingFile << "Thread " << std::this_thread::get_id()
                << " total computation time: " << thread_duration.count() << " seconds."
                << " Processed " << num_particles_processed << " particles." << std::endl;
