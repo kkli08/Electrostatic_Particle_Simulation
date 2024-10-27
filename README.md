@@ -77,6 +77,19 @@ applied to compute the signed scalar force sums on every particle.
 [//]: # ()
 #### Mean Percentage Error for Different Cutoff Radius
 ![](hist_data/chart/mape_cr.png)
+**_Run, Test and Generate Graph_**
+```shell
+// activate virtual env
+source venv/bin/activate
+
+// GOTO directory
+cd hist_data/cr
+
+// the output files I provided have the format of output_parallel_{%d}.csv where {%d} is the
+// cutoff radius. you can use whatever mode you want to generate result and rename it in the 
+// same format and add the cutoff radius in the list in the script.
+python3 output_parallel_mape.py
+```
 
 ### Mode 2: Evenly-Distributed Parallel Computation
 > [!NOTE]
@@ -96,13 +109,38 @@ The work is as evenly as possible divided among the threads.
 > `--cutoff_radius=45000`
 
 ![](hist_data/chart/total_time_threads.png)
+**_Run, Test and Generate Graph_**
+```shell
+// activate virtual env
+source venv/bin/activate
 
+// GOTO directory
+cd hist_data/mode_2_threads_compare
+
+// the output files I provided have the format of timing_cutoff_{radius}_threads_{%d}.csv where {%d} is the
+// number of threads. Use Mode 2 generate result txt files; The Mode 2 will record the time consumed and save
+// the result in the txt file.
+python3 threads_compare.py // this is Graph 1
+```
 #### Average Time per Particle vs Number of Threads
 > [!IMPORTANT]
 > `--cutoff_radius=45000`
 
 ![](hist_data/chart/average_time_particle_threads.png)
 
+**_Run, Test and Generate Graph_**
+```shell
+// activate virtual env
+source venv/bin/activate
+
+// GOTO directory
+cd hist_data/mode_2_threads_compare
+
+// the output files I provided have the format of timing_cutoff_{radius}_threads_{%d}.csv where {%d} is the
+// number of threads. Use Mode 2 generate result txt files; The Mode 2 will record the time consumed and save
+// the result in the txt file.
+python3 threads_compare.py // this is Graph 2
+```
 
 ### Mode 3: Load-Balanced, Leader-Based Parallel Computation
 > [!NOTE]
@@ -123,13 +161,42 @@ mpirun -np {%num_of_leaders} ./nParticleSim --mode=3 --cutoff_radius=45000 --inp
 > `--cutoff_radius=45000` , `--num_threads=10`
 
 ![](hist_data/chart/mode_3_average_leader_compute_time.png)
+**_Run, Test and Generate Graph_**
+```shell
+// activate virtual env
+source venv/bin/activate
+
+// GOTO directory
+cd hist_data/mode_3
+
+// use leader_process_executions.py to automatically run the program with different 
+// number of leaders and threads
+python3 leader_process_executions.py
+
+// Graph 1 is Average Computation Time vs Number of Leaders
+python3 comparision_of_total_computation.py
+```
 
 #### Mode 2 vs Mode 3 (same number of threads)
 > [!IMPORTANT]
 > `--cutoff_radius=45000`
 
 ![](hist_data/chart/mode_3_load_balance_compare.png)
+**_Run, Test and Generate Graph_**
+```shell
+// activate virtual env
+source venv/bin/activate
 
+// GOTO directory
+cd hist_data/mode_3
+
+// use leader_process_executions.py to automatically run the program with different 
+// number of leaders and threads
+python3 leader_process_executions.py
+
+// Graph 2 is Total Computation Time vs Number of Threads (different mode)
+python3 comparision_of_total_computation.py
+```
 ### _Hardware Resources_
 ```text
 System:     macOS Sonoma Version 14.3.1
